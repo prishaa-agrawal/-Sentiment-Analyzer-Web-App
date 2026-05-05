@@ -121,17 +121,6 @@ Load it in `sentiment_model.py` by replacing `SAMPLE_DATA` with a CSV read.
 - **Frontend:** Vanilla HTML/CSS/JS
 - **Notebook:** Jupyter
 
----
 
-## Contributing
 
-Pull requests are welcome! Feel free to open an issue for bugs or feature suggestions.
-
-1. Fork the repo
-2. Create your branch (`git checkout -b feature/your-feature`)
-3. Commit changes (`git commit -m 'Add feature'`)
-4. Push to branch (`git push origin feature/your-feature`)
-5. Open a Pull Request
-
----
 
