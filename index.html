@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SentiScope — NLP Sentiment Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #0b0d11;
+      --surface:  #13161c;
+      --border:   #1f2430;
+      --muted:    #4a5168;
+      --text:     #e8eaf0;
+      --accent:   #7c6dfa;
+      --pos:      #22c55e;
+      --neg:      #ef4444;
+      --neu:      #f59e0b;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 24px 80px;
+    }
+
+    /* Ambient glow */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 700px; height: 400px;
+      background: radial-gradient(ellipse at center, rgba(124,109,250,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo {
+      font-size: 13px;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    h1 span { color: var(--accent); }
+
+    .subtitle {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 400;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      width: 100%;
+      max-width: 680px;
+      position: relative;
+      z-index: 1;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      line-height: 1.7;
+      padding: 16px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: var(--muted); }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    button {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 28px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      flex: 1;
+    }
+
+    .btn-primary:hover { background: #9585fc; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-clear {
+      background: var(--border);
+      color: var(--muted);
+    }
+
+    .btn-clear:hover { background: #2a3040; color: var(--text); }
+
+    /* Result area */
+    #result {
+      margin-top: 28px;
+      display: none;
+      animation: fadeUp 0.35s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .emoji-badge {
+      font-size: 2.4rem;
+      line-height: 1;
+    }
+
+    .label-text {
+      font-size: 1.9rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-transform: capitalize;
+    }
+
+    .confidence-tag {
+      margin-left: auto;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 99px;
+      background: var(--border);
+      color: var(--text);
+    }
+
+    /* Score bars */
+    .scores { display: flex; flex-direction: column; gap: 10px; }
+
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .score-label {
+      font-family: 'DM Mono', monospace;
+      width: 72px;
+      text-transform: capitalize;
+      color: var(--muted);
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 6px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.6s cubic-bezier(.22,1,.36,1);
+      width: 0;
+    }
+
+    .score-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      width: 40px;
+      text-align: right;
+      color: var(--muted);
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 24px 0;
+    }
+
+    /* Examples section */
+    .examples {
+      margin-top: 36px;
+      width: 100%;
+      max-width: 680px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .examples h2 {
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.18s;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg {
+      color: var(--neg);
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <p class="logo">✦ NLP Project</p>
+    <h1>Senti<span>Scope</span></h1>
+    <p class="subtitle">Sentiment analysis powered by TF-IDF + Logistic Regression</p>
+  </header>
+
+  <div class="card">
+    <textarea id="inputText" placeholder="Type or paste any text here — a review, tweet, comment..."></textarea>
+    <div class="actions">
+      <button class="btn-primary" id="analyzeBtn" onclick="analyze()">Analyze Sentiment</button>
+      <button class="btn-clear" onclick="clearAll()">Clear</button>
+    </div>
+    <p class="error-msg" id="errorMsg"></p>
+
+    <div id="result">
+      <hr class="divider">
+      <div class="result-header">
+        <span class="emoji-badge" id="resEmoji"></span>
+        <span class="label-text" id="resLabel"></span>
+        <span class="confidence-tag" id="resConf"></span>
+      </div>
+      <div class="scores" id="scoresBars"></div>
+    </div>
+  </div>
+
+  <div class="examples">
+    <h2>Try an example</h2>
+    <div class="chips">
+      <span class="chip" onclick="tryExample(this)">Absolutely loved it! Best purchase of the year.</span>
+      <span class="chip" onclick="tryExample(this)">Terrible quality. Broke after two uses.</span>
+      <span class="chip" onclick="tryExample(this)">It's fine, does what it says.</span>
+      <span class="chip" onclick="tryExample(this)">The support team was incredibly helpful and kind.</span>
+      <span class="chip" onclick="tryExample(this)">Worst experience I've ever had. Never again.</span>
+      <span class="chip" onclick="tryExample(this)">Average at best, nothing remarkable.</span>
+    </div>
+  </div>
+
+  <script>
+    const BAR_COLORS = { positive: '#22c55e', negative: '#ef4444', neutral: '#f59e0b' };
+
+    async function analyze() {
+      const text = document.getElementById('inputText').value.trim();
+      const btn  = document.getElementById('analyzeBtn');
+      const err  = document.getElementById('errorMsg');
+      const res  = document.getElementById('result');
+
+      err.textContent = '';
+      if (!text) { err.textContent = 'Please enter some text first.'; return; }
+
+      btn.innerHTML = '<span class="spinner"></span> Analyzing...';
+      btn.disabled = true;
+      res.style.display = 'none';
+
+      try {
+        const resp = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+        });
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error);
+        renderResult(data);
+      } catch (e) {
+        err.textContent = 'Error: ' + e.message;
+      } finally {
+        btn.innerHTML = 'Analyze Sentiment';
+        btn.disabled = false;
+      }
+    }
+
+    function renderResult(data) {
+      document.getElementById('resEmoji').textContent  = data.emoji;
+      document.getElementById('resLabel').textContent  = data.label;
+      document.getElementById('resLabel').style.color  = data.color;
+      document.getElementById('resConf').textContent   = data.confidence + '% confidence';
+
+      const container = document.getElementById('scoresBars');
+      container.innerHTML = '';
+
+      const ordered = ['positive', 'neutral', 'negative'];
+      ordered.forEach(key => {
+        const score = data.scores[key] ?? 0;
+        const pct   = (score * 100).toFixed(1);
+        const row   = document.createElement('div');
+        row.className = 'score-row';
+        row.innerHTML = `
+          <span class="score-label">${key}</span>
+          <div class="bar-track">
+            <div class="bar-fill" data-pct="${pct}" style="background:${BAR_COLORS[key]}"></div>
+          </div>
+          <span class="score-val">${pct}%</span>
+        `;
+        container.appendChild(row);
+      });
+
+      const result = document.getElementById('result');
+      result.style.display = 'block';
+
+      // Animate bars after paint
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        document.querySelectorAll('.bar-fill').forEach(el => {
+          el.style.width = el.dataset.pct + '%';
+        });
+      }));
+    }
+
+    function clearAll() {
+      document.getElementById('inputText').value = '';
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('errorMsg').textContent = '';
+    }
+
+    function tryExample(el) {
+      document.getElementById('inputText').value = el.textContent.trim();
+      analyze();
+    }
+
+    // Ctrl+Enter shortcut
+    document.getElementById('inputText').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && e.ctrlKey) analyze();
+    });
+  </script>
+</body>
+</html>
