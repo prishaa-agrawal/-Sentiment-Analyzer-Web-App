@@ -1,4 +1,4 @@
-# 🔍 SentiScope — NLP Sentiment Analyzer
+#  SentiScope — NLP Sentiment Analyzer
 
 A beginner-friendly **end-to-end NLP project** that classifies text as **Positive**, **Negative**, or **Neutral** using a TF-IDF + Logistic Regression pipeline, served via a sleek Flask web app.
 
@@ -9,18 +9,17 @@ A beginner-friendly **end-to-end NLP project** that classifies text as **Positiv
 
 ---
 
-## ✨ Features
+##  Features
 
-- 🧠 **ML Pipeline** — TF-IDF vectorizer + Logistic Regression with bigrams
-- 🌐 **Web App** — Clean Flask UI with animated confidence score bars
-- 📓 **Jupyter Notebook** — Full EDA, training, and evaluation walkthrough
-- ⚡ **REST API** — `/predict` and `/batch` endpoints (JSON)
-- 🔌 **Lexicon Fallback** — Works even without scikit-learn installed
+-  **ML Pipeline** — TF-IDF vectorizer + Logistic Regression with bigrams
+-  **Web App** — Clean Flask UI with animated confidence score bars
+-  **Jupyter Notebook** — Full EDA, training, and evaluation walkthrough
+-  **REST API** — `/predict` and `/batch` endpoints (JSON)
+-  **Lexicon Fallback** — Works even without scikit-learn installed
 
 ---
 
-## 📁 Project Structure
-
+##  Project Structure
 ```
 sentiment-analyzer/
 │
@@ -40,7 +39,7 @@ sentiment-analyzer/
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### 1. Clone the repo
 ```bash
@@ -58,11 +57,11 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open your browser at `http://localhost:5000` 🎉
+Open your browser at `http://localhost:5000` 
 
 ---
 
-## 🔗 API Usage
+##  API Usage
 
 ### Single Prediction
 ```bash
@@ -92,7 +91,7 @@ curl -X POST http://localhost:5000/batch \
 
 ---
 
-## 🧪 How It Works
+##  How It Works
 
 | Step | Description |
 |------|-------------|
@@ -103,7 +102,7 @@ curl -X POST http://localhost:5000/batch \
 
 ---
 
-## 📈 Improving the Model
+##  Improving the Model
 
 Want better accuracy? Swap the sample data with a real dataset:
 
@@ -115,7 +114,7 @@ Load it in `sentiment_model.py` by replacing `SAMPLE_DATA` with a CSV read.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Backend:** Python, Flask
 - **ML:** scikit-learn (TF-IDF, Logistic Regression)
@@ -124,7 +123,7 @@ Load it in `sentiment_model.py` by replacing `SAMPLE_DATA` with a CSV read.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Pull requests are welcome! Feel free to open an issue for bugs or feature suggestions.
 
@@ -136,6 +135,3 @@ Pull requests are welcome! Feel free to open an issue for bugs or feature sugges
 
 ---
 
-## 📄 License
-
-MIT © 2024 — feel free to use, modify, and share.
